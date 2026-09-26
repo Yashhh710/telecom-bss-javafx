@@ -4,6 +4,8 @@ A JavaFX-based Telecom Business Support System (BSS) developed as my Java Final 
 
 The application provides a complete desktop-based solution for managing telecom customers, SIM cards, plans, usage, billing, payments, and reports through a modern black & gold JavaFX interface.
 
+[Click for live Web demo](https://yashhh710.github.io/telecom-bss-javafx/WEB-DEMO.html)
+
 ## Project Overview
 
 Telecom operators need to manage large amounts of customer and billing information, including SIM activation, subscription plans, call/SMS/data usage, monthly bills, and payments.
