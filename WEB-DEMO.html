@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Telecom SIM Activation & Billing System</title>
+<link rel="icon" href="https://img.icons8.com/?size=100&id=tj70yMRXxVUS&format=png&color=000000" type="image/png">
+<style>
+:root{
+  --bg:#f7f5f0; --sidebar:#171717; --sidebar-hover:#292929;
+  --gold:#c99622; --gold-hover:#e0b64e; --gold-pressed:#a97b18; --logo:#f4c95d;
+  --border:#e4e0d7; --input-border:#d8d4ca; --text:#202020; --muted:#77736b;
+  --label:#4b4944; --nav-text:#d2d2d2; --nav-sub:#a9a9a9; --header-cell:#eeeae1;
+  --row-hover:#faf6ea; --row-selected:#f5e6bb; --danger:#a33a32; --danger-border:#d8b3af;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0; font-family:"SF Pro Display","Segoe UI",Arial,sans-serif;
+  background:var(--bg); color:var(--text);
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.app{display:flex; min-height:100vh;}
+
+/* Sidebar */
+.sidebar{
+  width:245px; min-width:245px; background:var(--sidebar);
+  padding:24px 16px; display:flex; flex-direction:column; gap:10px;
+  padding-top:calc(24px + env(safe-area-inset-top,0px));
+}
+.logo{color:var(--logo); font-size:25px; font-weight:bold;}
+.sidebar-sub{color:var(--nav-sub); font-size:11px; margin-top:-4px;}
+.separator{border:none; border-top:1px solid #333; margin:6px 0 4px;}
+.nav-button{
+  background:transparent; color:var(--nav-text); font-size:14px; text-align:left;
+  padding:12px 18px; border-radius:10px; border:none; cursor:pointer; width:100%;
+}
+.nav-button:hover{background:var(--sidebar-hover); color:var(--logo);}
+.nav-button:active, .nav-button.pressed{background:var(--gold-pressed); color:var(--sidebar);}
+
+/* Main shell */
+.main-shell{flex:1; padding:26px; display:flex; flex-direction:column; gap:18px; min-width:0;}
+.topbar{padding:0 0 18px 0; border-bottom:1px solid #dedbd3; display:flex; align-items:center;}
+.topbar .title{color:var(--text); font-size:28px; font-weight:bold; margin:0;}
+.content{display:flex; flex-direction:column; gap:18px; flex:1;}
+.page{display:flex; flex-direction:column; gap:16px;}
+
+.hero-title{font-size:30px; font-weight:bold; margin:0;}
+.section-title{font-size:20px; font-weight:bold; margin:0;}
+.muted{color:var(--muted); font-size:13px;}
+
+/* Stats */
+.stats{display:flex; gap:14px; flex-wrap:wrap;}
+.stat-card{
+  background:#fff; border:1px solid var(--border); border-radius:14px; padding:20px;
+  flex:1; min-width:160px; display:flex; flex-direction:column; gap:5px;
+}
+.stat-number{color:var(--gold); font-size:28px; font-weight:bold;}
+.stat-label{color:var(--muted); font-size:13px;}
+
+/* Forms */
+.form-card{
+  background:#fff; border:1px solid var(--border); border-radius:14px; padding:22px;
+  display:grid; grid-template-columns:150px 1fr; gap:14px; align-items:center; max-width:640px;
+}
+.form-card label{color:var(--label); font-size:14px;}
+input[type=text], input[type=number], input[type=date], select, textarea{
+  background:#fff; border:1px solid var(--input-border); border-radius:12px;
+  font-size:14px; padding:9px 12px; font-family:inherit; width:100%;
+}
+input:focus, select:focus, textarea:focus{outline:none; border-color:var(--gold); border-width:2px; padding:8px 11px;}
+input:hover, select:hover{border-color:var(--gold);}
+
+button{font-family:inherit; cursor:pointer;}
+.primary-button{
+  background:var(--gold); color:var(--sidebar); font-weight:bold; padding:10px 18px;
+  border-radius:10px; border:none; align-self:flex-start;
+}
+.primary-button:hover{background:var(--gold-hover);}
+.primary-button:active{background:var(--gold-pressed);}
+.secondary-button{
+  background:#fff; color:#3f3d38; border:1px solid var(--input-border); padding:10px 18px;
+  border-radius:10px;
+}
+.secondary-button:hover{background:#f5e6bb; border-color:var(--gold);}
+.danger-button{
+  background:#fff; color:var(--danger); border:1px solid var(--danger-border); padding:10px 18px;
+  border-radius:10px;
+}
+.danger-button:hover{background:#f7e5e3;}
+
+.actions-row{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+.search-field{flex:1; min-width:220px;}
+
+/* Table */
+.table-wrap{background:#fff; border:1px solid var(--border); border-radius:12px; overflow:auto; max-height:460px;}
+table{width:100%; border-collapse:collapse; font-size:14px;}
+thead th{
+  background:var(--header-cell); color:#403e39; font-weight:bold; text-align:left;
+  padding:10px; position:sticky; top:0; z-index:1;
+}
+tbody td{padding:10px; color:#30302d; border-bottom:1px solid var(--header-cell);}
+tbody tr{background:#fff; cursor:default;}
+tbody tr:hover{background:var(--row-hover);}
+tbody tr.selected{background:var(--row-selected);}
+tbody tr.selected td{color:var(--text);}
+.table-empty{padding:22px; color:var(--muted); text-align:center;}
+
+textarea.invoice{
+  min-height:340px; font-family:"Courier New",monospace; font-size:13px; resize:vertical; background:#fff;
+}
+
+/* Modal */
+.overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.45); display:none;
+  align-items:center; justify-content:center; z-index:50; padding:20px;
+}
+.overlay.open{display:flex;}
+.modal{
+  background:#fff; border-radius:14px; padding:24px; width:100%; max-width:460px;
+  max-height:90vh; overflow:auto; box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+.modal h3{margin:0 0 16px; font-size:19px;}
+.modal .form-card{max-width:none; grid-template-columns:130px 1fr; padding:0; border:none;}
+.modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:20px;}
+
+/* Alert */
+.alert-box{
+  background:#fff; border-radius:14px; padding:24px; width:100%; max-width:420px;
+  box-shadow:0 20px 60px rgba(0,0,0,.3); text-align:left;
+}
+.alert-box h3{margin:0 0 10px; font-size:18px;}
+.alert-box p{margin:0 0 18px; color:#3f3d38; font-size:14px; line-height:1.5; white-space:pre-wrap;}
+.alert-box .modal-actions{justify-content:flex-end;}
+
+::-webkit-scrollbar{width:10px; height:10px;}
+::-webkit-scrollbar-track{background:var(--header-cell); border-radius:8px;}
+::-webkit-scrollbar-thumb{background:var(--gold); border-radius:8px;}
+::-webkit-scrollbar-thumb:hover{background:var(--gold-hover);}
+
+@media (max-width:760px){
+  .app{flex-direction:column;}
+  .sidebar{width:100%; min-width:0; flex-direction:row; flex-wrap:wrap; padding:14px;}
+  .logo, .sidebar-sub, .separator{display:none;}
+  .nav-button{width:auto; flex:1 1 auto; text-align:center; padding:10px 12px; font-size:13px;}
+  .form-card{grid-template-columns:1fr; }
+  .form-card label{margin-bottom:-6px;}
+}
+
+/* ===================== NEW INTRO SCREEN CSS ===================== */
+#intro-screen {
+  position: fixed;
+  inset: 0;
+  background-color: var(--bg);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow: hidden;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+#intro-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+.intro-content {
+  text-align: center;
+  max-width: 650px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+.intro-title {
+  color: var(--text);
+  font-size: 38px;
+  font-weight: bold;
+  margin: 0;
+  line-height: 1.2;
+}
+.intro-subtitle {
+  color: var(--muted);
+  font-size: 18px;
+  margin: 0;
+  line-height: 1.6;
+}
+.intro-button {
+  background: var(--gold);
+  color: var(--sidebar);
+  font-size: 17px;
+  font-weight: bold;
+  padding: 16px 32px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  margin-top: 10px;
+}
+.intro-button:hover {
+  background: var(--gold-hover);
+}
+.intro-button:active {
+  background: var(--gold-pressed);
+  transform: scale(0.98);
+}
+@media (max-width: 760px) {
+  .intro-title {
+    font-size: 28px;
+  }
+  .intro-subtitle {
+    font-size: 16px;
+  }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="logo">Telecom BSS</div>
+    <div class="sidebar-sub">Business • Support • System</div>
+    <hr class="separator">
+    <button class="nav-button" onclick="showDashboard()">Dashboard</button>
+    <button class="nav-button" onclick="showCustomers()">Customers</button>
+    <button class="nav-button" onclick="showSIM()">SIM Registration</button>
+    <button class="nav-button" onclick="showPlans()">Plans</button>
+    <button class="nav-button" onclick="showUsage()">Usage Tracking</button>
+    <button class="nav-button" onclick="showBilling()">Bill Generation</button>
+    <button class="nav-button" onclick="showPayments()">Payments</button>
+    <button class="nav-button" onclick="showReports()">Reports</button>
+  </div>
+  <div class="main-shell">
+    <div class="topbar"><h1 class="title" id="pageTitle">Dashboard</h1></div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<div class="overlay" id="modalOverlay"><div class="modal" id="modalBox"></div></div>
+<div class="overlay" id="alertOverlay"><div class="alert-box" id="alertBox"></div></div>
+
+<!-- ===================== NEW INTRO SCREEN HTML ===================== -->
+<div id="intro-screen">
+  <div class="intro-content">
+    <h1 class="intro-title">1:1 Same Demo Web of My JavaFX Project... </h1>
+    <p class="intro-subtitle">This is a web-based demonstration that recreates the same UI, workflow, features, and functionality of my JavaFX Telecom BSS project.</p>
+    <button class="intro-button" onclick="dismissIntro()">Enter Demo &rarr;</button>
+  </div>
+</div>
+
+<script>
+/* ===================== DATA MODEL (mirrors DataStore.java) ===================== */
+const PlanType = { PREPAID:"PREPAID", POSTPAID:"POSTPAID" };
+const PaymentStatus = { PENDING:"PENDING", PAID:"PAID" };
+
+let plans = [];
+let customers = [];
+let sims = [];
+let usageHistory = [];      // most recent first (LinkedList.addFirst semantics)
+let simCustomerMap = {};    // simNumber -> customer
+let bills = [];             // list of Bill (order of generation; TreeMap keyed by date in original)
+let payments = [];
+let nextCustomerId = 1;
+
+function makePlan(code,name,type,rent,dataLimit,callLimit,smsLimit){
+  return {planCode:code, planName:name, planType:type, monthlyRent:rent, dataLimit:dataLimit, callLimit:callLimit, smsLimit:smsLimit};
+}
+function planLabel(p){ return p ? (p.planCode+" - "+p.planName+" (₹"+p.monthlyRent.toFixed(2)+")") : "-"; }
+
+function makeCustomer(id,name,email,phone,address){
+  return {customerId:id, name, email, phone, address, simCard:null, plan:null};
+}
+function customerLabel(c){ return c ? (c.name+" ("+c.phone+")") : "-"; }
+
+function makeSim(number){ return {simNumber:number, active:false, activationDate:null}; }
+
+function registerSim(customer, number, plan){
+  const sim = makeSim(number);
+  sim.active = true;
+  sim.activationDate = todayISO();
+  sims.push(sim);
+  customer.simCard = sim;
+  customer.plan = plan;
+  simCustomerMap[number] = customer;
+}
+
+function todayISO(offsetDays){
+  const d = new Date();
+  if (offsetDays) d.setDate(d.getDate()+offsetDays);
+  return d.toISOString().slice(0,10);
+}
+
+function seed(){
+  const p149 = makePlan("P149","Starter 149",PlanType.PREPAID,149,28,2000,100);
+  const p199 = makePlan("P199","Basic 199",PlanType.PREPAID,199,45,3000,100);
+  const p299 = makePlan("P299","Smart 299",PlanType.PREPAID,299,60,5000,100);
+  const p399 = makePlan("P399","Power 399",PlanType.PREPAID,399,70,7500,150);
+  const p499 = makePlan("P499","Max 499",PlanType.POSTPAID,499,50,10000,300);
+  const p799 = makePlan("P799","Premium 799",PlanType.POSTPAID,799,90,20000,500);
+  plans.push(p149,p199,p299,p399,p499,p799);
+
+  const raw = [
+    ["Yash Tambade","yash@example.com","9876543210","Kharghar"],
+    ["Rahul Sharma","rahul@example.com","9876543211","Panvel"],
+    ["Aman Patil","aman@example.com","9876543212","Navi Mumbai"],
+    ["Priya Deshmukh","priya@example.com","9876543213","Vashi"],
+    ["Rohan Mehta","rohan@example.com","9876543214","Belapur"],
+    ["Sneha Kulkarni","sneha@example.com","9876543215","Kharghar"],
+    ["Aditya Joshi","aditya@example.com","9876543216","Panvel"],
+    ["Neha Shah","neha@example.com","9876543217","Kamothe"],
+    ["Vivek More","vivek@example.com","9876543218","Kalamboli"],
+    ["Anjali Rao","anjali@example.com","9876543219","Vashi"],
+    ["Karan Singh","karan@example.com","9876543220","Nerul"],
+    ["Pooja Nair","pooja@example.com","9876543221","Seawoods"],
+    ["Arjun Kapoor","arjun@example.com","9876543222","Airoli"],
+    ["Isha Verma","isha@example.com","9876543223","Ghansoli"],
+    ["Manish Gupta","manish@example.com","9876543224","Taloja"],
+    ["Riya Malhotra","riya@example.com","9876543225","Kharghar"],
+    ["Sahil Khan","sahil@example.com","9876543226","Panvel"],
+    ["Tanvi Patil","tanvi@example.com","9876543227","Kamothe"],
+    ["Akash Jadhav","akash@example.com","9876543228","Belapur"],
+    ["Simran Kaur","simran@example.com","9876543229","Nerul"]
+  ];
+  raw.forEach((r,i)=>{ customers.push(makeCustomer(i+1, r[0], r[1], r[2], r[3])); });
+  nextCustomerId = customers.length + 1;
+
+  const planFor = [p299,p199,p499,p399,p799,p299,p149,p399,p199,p499,p799,p299,p399,p199,p499,p799,p149,p299,p399,p499];
+  customers.forEach((c,i)=>{ registerSim(c, c.phone, planFor[i]); });
+
+  const usageRaw = [
+    ["9876543210",0,120,34,2.5], ["9876543210",-1,80,21,1.8],
+    ["9876543211",0,65,12,1.2], ["9876543211",-2,45,18,0.9],
+    ["9876543212",0,180,45,4.7], ["9876543213",0,95,27,2.1],
+    ["9876543214",0,210,56,6.4], ["9876543215",0,75,19,1.7],
+    ["9876543216",0,35,8,0.6], ["9876543217",0,140,31,3.8],
+    ["9876543218",0,55,15,1.1], ["9876543219",0,165,42,4.2],
+    ["9876543220",0,230,61,7.1], ["9876543221",0,90,24,2.3],
+    ["9876543222",0,125,37,3.1], ["9876543223",0,70,16,1.5],
+    ["9876543224",0,190,49,5.3], ["9876543225",0,250,68,8.2],
+    ["9876543226",0,40,10,0.8], ["9876543227",0,110,29,2.7],
+    ["9876543228",0,155,35,3.9], ["9876543229",0,175,44,4.5]
+  ];
+  usageRaw.forEach(u=>{
+    usageHistory.push({simNumber:u[0], date:todayISO(u[1]), callMinutes:u[2], smsCount:u[3], dataUsed:u[4]});
+  });
+}
+seed();
+
+/* ===================== VALIDATION (mirrors Validator.java) ===================== */
+class ValidationException extends Error {}
+const Validator = {
+  validateName(v){ if(!v || !v.trim()) throw new ValidationException("Customer name is required."); },
+  validatePhone(v){ if(!v || !/^\d{10}$/.test(v)) throw new ValidationException("Phone number must contain exactly 10 digits."); },
+  validateEmail(v){ if(!v || !/^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$/.test(v)) throw new ValidationException("Enter a valid email address."); },
+  validateSIM(v){ if(!v || !/^\d{10}$/.test(v)) throw new ValidationException("SIM number must contain exactly 10 digits."); },
+  validateUsage(calls,sms,data){ if(calls<0||sms<0||data<0) throw new ValidationException("Usage values cannot be negative."); },
+  validatePlanCode(v){ if(!v || !/^[A-Za-z0-9-]{2,12}$/.test(v)) throw new ValidationException("Plan code must be 2-12 letters, numbers or hyphens."); }
+};
+
+/* ===================== SERVICES (mirror *Service.java) ===================== */
+const CustomerService = {
+  add(name,email,phone,address){
+    Validator.validateName(name); Validator.validateEmail(email); Validator.validatePhone(phone);
+    if (customers.some(c=>c.phone===phone)) throw new ValidationException("A customer with this phone number already exists.");
+    const c = makeCustomer(nextCustomerId++, name, email, phone, address);
+    customers.push(c);
+    return c;
+  },
+  update(customer,name,email,phone,address){
+    Validator.validateName(name); Validator.validateEmail(email); Validator.validatePhone(phone);
+    customer.name=name; customer.email=email; customer.phone=phone; customer.address=address;
+  },
+  delete(customer){
+    if (customer.simCard) delete simCustomerMap[customer.simCard.simNumber];
+    customers = customers.filter(c=>c!==customer);
+  },
+  search(text){
+    const q = (text||"").toLowerCase();
+    return customers.filter(c=> c.name.toLowerCase().includes(q) || c.phone.includes(q) ||
+      (c.simCard && c.simCard.simNumber.includes(q)))
+      .sort((a,b)=>a.name.localeCompare(b.name));
+  }
+};
+
+const SIMService = {
+  activate(customer, number, plan){
+    Validator.validateSIM(number);
+    if (!plan) throw new ValidationException("Select a plan.");
+    if (simCustomerMap[number]) throw new ValidationException("This SIM number is already registered.");
+    const sim = makeSim(number);
+    sim.active = true; sim.activationDate = todayISO();
+    sims.push(sim);
+    simCustomerMap[number] = customer;
+    customer.simCard = sim;
+    customer.plan = plan;
+    return sim;
+  }
+};
+
+const UsageService = {
+  add(sim, date, calls, sms, data){
+    if (!simCustomerMap[sim]) throw new ValidationException("No customer is registered with this SIM.");
+    Validator.validateUsage(calls, sms, data);
+    const usage = {simNumber:sim, date, callMinutes:calls, smsCount:sms, dataUsed:data};
+    usageHistory.unshift(usage);
+    return usage;
+  }
+};
+
+const BillingService = {
+  generate(customer, month){
+    const plan = customer.plan;
+    const base = plan ? plan.monthlyRent : 0;
+    const sim = customer.simCard ? customer.simCard.simNumber : "";
+    const usage = usageHistory.filter(u=>u.simNumber===sim);
+    const calls = usage.reduce((s,u)=>s+u.callMinutes,0);
+    const smsC  = usage.reduce((s,u)=>s+u.smsCount,0);
+    const data  = usage.reduce((s,u)=>s+u.dataUsed,0);
+    const callCharges = Math.max(0, calls - (plan? plan.callLimit:0)) * 0.50;
+    const smsCharges  = Math.max(0, smsC - (plan? plan.smsLimit:0)) * 0.20;
+    const dataCharges = Math.max(0, data - (plan? plan.dataLimit:0)) * 10.0;
+    const id = "BILL-" + Date.now();
+    const total = base + callCharges + smsCharges + dataCharges;
+    const bill = {billId:id, customerId:customer.customerId, month, billDate:todayISO(),
+      baseAmount:base, callCharges, smsCharges, dataCharges, totalAmount:total, paymentStatus:PaymentStatus.PENDING};
+    bills.push(bill);
+    return bill;
+  }
+};
+
+const PaymentService = {
+  pay(bill, method){
+    if (!bill) throw new ValidationException("Select a bill.");
+    if (!method || !method.trim()) throw new ValidationException("Select a payment method.");
+    if (bill.paymentStatus === PaymentStatus.PAID) throw new ValidationException("This bill is already paid.");
+    const payment = {paymentId:"TXN-"+Date.now(), billId:bill.billId, amount:bill.totalAmount, method, paymentDate:new Date().toISOString()};
+    bill.paymentStatus = PaymentStatus.PAID;
+    payments.push(payment);
+    return payment;
+  }
+};
+
+function generateInvoice(customer, bill){
+  const L = (label,val)=> label.padEnd(14," ")+": "+val+"\n";
+  let s = "";
+  s += "========================================\n";
+  s += "          TELECOM INVOICE\n";
+  s += "========================================\n";
+  s += L("Bill ID", bill.billId);
+  s += L("Customer", customer.name);
+  s += L("Phone", customer.phone);
+  s += L("SIM", customer.simCard ? customer.simCard.simNumber : "-");
+  s += L("Plan", customer.plan ? customer.plan.planName : "-");
+  s += L("Billing Month", bill.month);
+  s += "----------------------------------------\n";
+  s += "Base Amount   : ₹"+bill.baseAmount.toFixed(2)+"\n";
+  s += "Call Charges  : ₹"+bill.callCharges.toFixed(2)+"\n";
+  s += "SMS Charges   : ₹"+bill.smsCharges.toFixed(2)+"\n";
+  s += "Data Charges  : ₹"+bill.dataCharges.toFixed(2)+"\n";
+  s += "----------------------------------------\n";
+  s += "TOTAL         : ₹"+bill.totalAmount.toFixed(2)+"\n";
+  s += "Status        : "+bill.paymentStatus+"\n";
+  s += "========================================\n";
+  return s;
+}
+
+/* ===================== UI HELPERS ===================== */
+const contentEl = document.getElementById('content');
+const titleEl = document.getElementById('pageTitle');
+function setTitle(t){ titleEl.textContent = t; }
+function setContent(html){ contentEl.innerHTML = html; }
+function esc(s){ return String(s===undefined||s===null?"":s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+function alertBox(header, message){
+  const overlay = document.getElementById('alertOverlay');
+  document.getElementById('alertBox').innerHTML = `
+    <h3>${esc(header)}</h3>
+    <p>${esc(message)}</p>
+    <div class="modal-actions"><button class="primary-button" onclick="closeAlert()">OK</button></div>`;
+  overlay.classList.add('open');
+}
+function closeAlert(){ document.getElementById('alertOverlay').classList.remove('open'); }
+
+function openModal(html){
+  document.getElementById('modalBox').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+
+function optionsHTML(items, getVal, getLabel, selectedVal){
+  return items.map(it=>`<option value="${esc(getVal(it))}" ${String(getVal(it))===String(selectedVal)?'selected':''}>${esc(getLabel(it))}</option>`).join('');
+}
+
+/* ===================== VIEWS (mirror DashboardController.java) ===================== */
+function showDashboard(){
+  setTitle("Dashboard");
+  const active = sims.filter(s=>s.active).length;
+  const total = bills.reduce((s,b)=>s+b.totalAmount,0);
+  setContent(`
+    <div class="page">
+      <h2 class="hero-title">Telecom Operations Overview</h2>
+      <div class="muted">Manage customers, SIM activation, plans, usage, billing and payments from one place.</div>
+      <div class="stats">
+        ${stat(customers.length,"Customers")}
+        ${stat(active,"Active SIMs")}
+        ${stat(plans.length,"Plans")}
+        ${stat("₹"+Math.round(total),"Generated Bills")}
+      </div>
+      <div class="section-title">Recent Customers</div>
+      ${customerTableHTML(customers, 'dashTable')}
+    </div>`);
+}
+function stat(number,label){
+  return `<div class="stat-card"><div class="stat-number">${esc(number)}</div><div class="stat-label">${esc(label)}</div></div>`;
+}
+
+function customerTableHTML(data, tableId){
+  const rows = data.map(c=>`
+    <tr>
+      <td>${esc(c.name)}</td>
+      <td>${esc(c.phone)}</td>
+      <td>${c.simCard? esc(c.simCard.simNumber):"-"}</td>
+      <td>${c.plan? esc(c.plan.planCode):"-"}</td>
+      <td>${c.simCard && c.simCard.active ? "ACTIVE":"INACTIVE"}</td>
+    </tr>`).join('');
+  return `<div class="table-wrap" id="${tableId}">
+    <table><thead><tr><th>Customer</th><th>Phone</th><th>SIM</th><th>Plan</th><th>Status</th></tr></thead>
+    <tbody>${rows || '<tr><td colspan="5" class="table-empty">No customers</td></tr>'}</tbody></table></div>`;
+}
+
+let selectedCustomerId = null;
+function showCustomers(){
+  setTitle("Customer Management");
+  renderCustomersPage(customers);
+}
+function renderCustomersPage(list){
+  setContent(`
+    <div class="page">
+      <div class="actions-row">
+        <input type="text" class="search-field" id="custSearch" placeholder="Search by name, phone or SIM..." oninput="onCustomerSearch(this.value)">
+        <button class="primary-button" onclick="customerDialog(null)">+ Add Customer</button>
+        <button class="secondary-button" onclick="editSelectedCustomer()">Edit</button>
+        <button class="danger-button" onclick="deleteSelectedCustomer()">Delete</button>
+      </div>
+      <div id="custTableHolder"></div>
+    </div>`);
+  renderCustomerSelectableTable(list);
+}
+function renderCustomerSelectableTable(list){
+  const rows = list.map(c=>`
+    <tr class="${selectedCustomerId===c.customerId?'selected':''}" onclick="selectCustomerRow(${c.customerId})">
+      <td>${esc(c.name)}</td><td>${esc(c.phone)}</td>
+      <td>${c.simCard? esc(c.simCard.simNumber):"-"}</td>
+      <td>${c.plan? esc(c.plan.planCode):"-"}</td>
+      <td>${c.simCard && c.simCard.active ? "ACTIVE":"INACTIVE"}</td>
+    </tr>`).join('');
+  document.getElementById('custTableHolder').innerHTML = `
+    <div class="table-wrap"><table><thead><tr><th>Customer</th><th>Phone</th><th>SIM</th><th>Plan</th><th>Status</th></tr></thead>
+    <tbody>${rows || '<tr><td colspan="5" class="table-empty">No customers found</td></tr>'}</tbody></table></div>`;
+}
+function selectCustomerRow(id){
+  selectedCustomerId = (selectedCustomerId===id)? null : id;
+  const val = document.getElementById('custSearch') ? document.getElementById('custSearch').value : "";
+  renderCustomerSelectableTable(val ? CustomerService.search(val) : customers);
+}
+function onCustomerSearch(val){
+  renderCustomerSelectableTable(val ? CustomerService.search(val) : customers);
+}
+function editSelectedCustomer(){
+  const c = customers.find(x=>x.customerId===selectedCustomerId);
+  if (c) customerDialog(c); 
+}
+function deleteSelectedCustomer(){
+  const c = customers.find(x=>x.customerId===selectedCustomerId);
+  if (c){ CustomerService.delete(c); selectedCustomerId=null; renderCustomerSelectableTable(customers); }
+}
+
+function customerDialog(existing){
+  openModal(`
+    <h3>${existing? "Edit Customer":"Add Customer"}</h3>
+    <div class="form-card">
+      <label>Name</label><input type="text" id="mName" value="${existing?esc(existing.name):''}">
+      <label>Email</label><input type="text" id="mEmail" value="${existing?esc(existing.email):''}">
+      <label>Phone</label><input type="text" id="mPhone" value="${existing?esc(existing.phone):''}">
+      <label>Address</label><input type="text" id="mAddress" value="${existing?esc(existing.address):''}">
+    </div>
+    <div class="modal-actions">
+      <button class="secondary-button" onclick="closeModal()">Cancel</button>
+      <button class="primary-button" onclick="submitCustomerDialog(${existing?existing.customerId:'null'})">OK</button>
+    </div>`);
+}
+function submitCustomerDialog(existingId){
+  const name = document.getElementById('mName').value.trim();
+  const email = document.getElementById('mEmail').value.trim();
+  const phone = document.getElementById('mPhone').value.trim();
+  const address = document.getElementById('mAddress').value.trim();
+  try{
+    if (existingId===null){ CustomerService.add(name,email,phone,address); }
+    else { const c = customers.find(x=>x.customerId===existingId); CustomerService.update(c,name,email,phone,address); }
+    closeModal();
+    const val = document.getElementById('custSearch') ? document.getElementById('custSearch').value : "";
+    renderCustomerSelectableTable(val ? CustomerService.search(val) : customers);
+  }catch(ex){ alertBox("Validation Error", ex.message); }
+}
+
+function showSIM(){
+  setTitle("SIM Registration & Activation");
+  setContent(`
+    <div class="page">
+      <div class="section-title">New SIM Activation</div>
+      <div class="form-card">
+        <label>Customer</label>
+        <select id="simCustomer">${optionsHTML(customers, c=>c.customerId, customerLabel)}</select>
+        <label>SIM Number</label>
+        <input type="text" id="simNumber" placeholder="10 digit SIM number">
+        <label>Plan</label>
+        <select id="simPlan">${optionsHTML(plans, p=>p.planCode, planLabel)}</select>
+      </div>
+      <button class="primary-button" onclick="submitSimActivation()">Activate SIM</button>
+      <div class="muted">Validation: SIM number must contain exactly 10 digits and cannot already be registered.</div>
+    </div>`);
+}
+function submitSimActivation(){
+  const custId = parseInt(document.getElementById('simCustomer').value,10);
+  const number = document.getElementById('simNumber').value.trim();
+  const planCode = document.getElementById('simPlan').value;
+  const customer = customers.find(c=>c.customerId===custId);
+  const plan = plans.find(p=>p.planCode===planCode);
+  try{
+    SIMService.activate(customer, number, plan);
+    alertBox("SIM Activated", "SIM "+number+" has been activated successfully.");
+  }catch(ex){ alertBox("Activation Error", ex.message); }
+}
+
+function showPlans(){
+  setTitle("Plan Management");
+  setContent(`
+    <div class="page">
+      <div class="actions-row"><button class="primary-button" onclick="planDialog()">+ Create Plan</button></div>
+      <div id="planTableHolder"></div>
+    </div>`);
+  renderPlanTable();
+}
+function renderPlanTable(){
+  const rows = plans.map(p=>`
+    <tr><td>${esc(p.planCode)}</td><td>${esc(p.planName)}</td><td>${esc(p.planType)}</td>
+    <td>₹${p.monthlyRent.toFixed(2)}</td><td>${p.dataLimit.toFixed(1)} GB</td></tr>`).join('');
+  document.getElementById('planTableHolder').innerHTML = `
+    <div class="table-wrap"><table><thead><tr><th>Code</th><th>Plan</th><th>Type</th><th>Monthly Rent</th><th>Data</th></tr></thead>
+    <tbody>${rows || '<tr><td colspan="5" class="table-empty">No plans</td></tr>'}</tbody></table></div>`;
+}
+function planDialog(){
+  openModal(`
+    <h3>Create Plan</h3>
+    <div class="form-card">
+      <label>Plan Code</label><input type="text" id="pCode">
+      <label>Plan Name</label><input type="text" id="pName">
+      <label>Type</label><select id="pType"><option value="PREPAID">PREPAID</option><option value="POSTPAID">POSTPAID</option></select>
+      <label>Monthly Rent</label><input type="text" id="pRent">
+      <label>Data Limit (GB)</label><input type="text" id="pData">
+      <label>Call Limit (min)</label><input type="text" id="pCalls">
+      <label>SMS Limit</label><input type="text" id="pSms">
+    </div>
+    <div class="modal-actions">
+      <button class="secondary-button" onclick="closeModal()">Cancel</button>
+      <button class="primary-button" onclick="submitPlanDialog()">OK</button>
+    </div>`);
+}
+function submitPlanDialog(){
+  const code = document.getElementById('pCode').value.trim();
+  const name = document.getElementById('pName').value.trim();
+  const type = document.getElementById('pType').value;
+  const rent = document.getElementById('pRent').value;
+  const data = document.getElementById('pData').value;
+  const calls = document.getElementById('pCalls').value;
+  const sms = document.getElementById('pSms').value;
+  try{
+    Validator.validatePlanCode(code);
+    const rentN = parseFloat(rent), dataN = parseFloat(data), callsN = parseInt(calls,10), smsN = parseInt(sms,10);
+    if ([rentN,dataN,callsN,smsN].some(n=>Number.isNaN(n))) throw new ValidationException("Enter valid numeric values.");
+    plans.push(makePlan(code, name, type, rentN, dataN, callsN, smsN));
+    closeModal();
+    renderPlanTable();
+  }catch(ex){ alertBox("Plan Error", ex.message); }
+}
+
+function showUsage(){
+  setTitle("Usage Tracking");
+  setContent(`
+    <div class="page">
+      <div class="form-card">
+        <label>Customer</label><select id="uCustomer">${optionsHTML(customers, c=>c.customerId, customerLabel)}</select>
+        <label>Date</label><input type="date" id="uDate" value="${todayISO()}">
+        <label>Call Minutes</label><input type="text" id="uCalls" value="0">
+        <label>SMS Count</label><input type="text" id="uSms" value="0">
+        <label>Data Used (GB)</label><input type="text" id="uData" value="0">
+      </div>
+      <button class="primary-button" onclick="submitUsage()">Add Usage</button>
+      <div class="section-title">Usage History</div>
+      <div id="usageTableHolder"></div>
+    </div>`);
+  renderUsageTable();
+}
+function renderUsageTable(){
+  const rows = usageHistory.map(u=>`
+    <tr><td>${esc(u.simNumber)}</td><td>${esc(u.date)}</td><td>${u.callMinutes}</td>
+    <td>${u.smsCount}</td><td>${u.dataUsed.toFixed(2)} GB</td></tr>`).join('');
+  document.getElementById('usageTableHolder').innerHTML = `
+    <div class="table-wrap"><table><thead><tr><th>SIM</th><th>Date</th><th>Calls</th><th>SMS</th><th>Data</th></tr></thead>
+    <tbody>${rows || '<tr><td colspan="5" class="table-empty">No usage recorded</td></tr>'}</tbody></table></div>`;
+}
+function submitUsage(){
+  const custId = parseInt(document.getElementById('uCustomer').value,10);
+  const date = document.getElementById('uDate').value;
+  const calls = document.getElementById('uCalls').value;
+  const sms = document.getElementById('uSms').value;
+  const data = document.getElementById('uData').value;
+  try{
+    const customer = customers.find(c=>c.customerId===custId);
+    if (!customer || !customer.simCard) throw new ValidationException("Select a customer with an active SIM.");
+    const callsN = parseInt(calls,10), smsN = parseInt(sms,10), dataN = parseFloat(data);
+    if ([callsN,smsN,dataN].some(n=>Number.isNaN(n))) throw new ValidationException("Enter valid numeric values.");
+    UsageService.add(customer.simCard.simNumber, date, callsN, smsN, dataN);
+    renderUsageTable();
+    alertBox("Usage Added", "Usage record saved successfully.");
+  }catch(ex){ alertBox("Usage Error", ex.message); }
+}
+
+function defaultBillingMonth(){
+  const months = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+  const d = new Date();
+  return months[d.getMonth()] + " " + d.getFullYear();
+}
+function showBilling(){
+  setTitle("Bill Generation");
+  setContent(`
+    <div class="page">
+      <div class="form-card">
+        <label>Customer</label><select id="bCustomer">${optionsHTML(customers, c=>c.customerId, customerLabel)}</select>
+        <label>Billing Month</label><input type="text" id="bMonth" value="${defaultBillingMonth()}">
+      </div>
+      <button class="primary-button" onclick="submitBilling()">Generate Bill</button>
+      <div class="section-title">Invoice Preview</div>
+      <textarea class="invoice" id="invoicePreview" readonly></textarea>
+    </div>`);
+}
+function submitBilling(){
+  const custId = parseInt(document.getElementById('bCustomer').value,10);
+  const month = document.getElementById('bMonth').value;
+  const customer = customers.find(c=>c.customerId===custId);
+  if (!customer || !customer.plan){ alertBox("Billing Error", "Select a customer with a plan."); return; }
+  const bill = BillingService.generate(customer, month);
+  document.getElementById('invoicePreview').value = generateInvoice(customer, bill);
+}
+
+function showPayments(){
+  setTitle("Payment Recording");
+  setContent(`
+    <div class="page">
+      <div class="form-card">
+        <label>Bill</label>
+        <select id="payBill">${optionsHTML(bills, b=>b.billId, b=>b.billId+" • ₹"+b.totalAmount.toFixed(2)+" • "+b.paymentStatus)}</select>
+        <label>Payment Method</label>
+        <select id="payMethod"><option value="UPI">UPI</option><option value="CARD">CARD</option><option value="CASH">CASH</option><option value="NET BANKING">NET BANKING</option></select>
+      </div>
+      <button class="primary-button" onclick="submitPayment()">Record Payment</button>
+      <div class="section-title">Payment History</div>
+      <div id="paymentTableHolder"></div>
+    </div>`);
+  renderPaymentTable();
+}
+function renderPaymentTable(){
+  const rows = payments.map(p=>`
+    <tr><td>${esc(p.paymentId)}</td><td>${esc(p.billId)}</td><td>₹${p.amount.toFixed(2)}</td><td>${esc(p.method)}</td></tr>`).join('');
+  document.getElementById('paymentTableHolder').innerHTML = `
+    <div class="table-wrap"><table><thead><tr><th>Transaction</th><th>Bill</th><th>Amount</th><th>Method</th></tr></thead>
+    <tbody>${rows || '<tr><td colspan="4" class="table-empty">No payments recorded</td></tr>'}</tbody></table></div>`;
+}
+function submitPayment(){
+  const billId = document.getElementById('payBill').value;
+  const method = document.getElementById('payMethod').value;
+  const bill = bills.find(b=>b.billId===billId);
+  try{
+    const p = PaymentService.pay(bill, method);
+    alertBox("Payment Successful", "Transaction: " + p.paymentId);
+    showPayments();
+  }catch(ex){ alertBox("Payment Error", ex.message); }
+}
+
+function showReports(){
+  setTitle("Billing Reports");
+  const sorted = [...bills].sort((a,b)=>b.totalAmount - a.totalAmount);
+  const rows = sorted.map(b=>`
+    <tr><td>${esc(b.billId)}</td><td>${esc(b.billDate)}</td><td>₹${b.totalAmount.toFixed(2)}</td><td>${esc(b.paymentStatus)}</td></tr>`).join('');
+  setContent(`
+    <div class="page">
+      <div class="muted">Bills are sorted by amount in descending order using Java sorting and the TreeMap date index.</div>
+      <div class="table-wrap"><table><thead><tr><th>Bill ID</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="4" class="table-empty">No bills generated yet</td></tr>'}</tbody></table></div>
+    </div>`);
+}
+
+/* ===================== INIT ===================== */
+showDashboard();
+
+/* ===================== NEW INTRO SCREEN JS ===================== */
+function dismissIntro() {
+  document.getElementById('intro-screen').classList.add('hidden');
+}
+</script>
+</body>
+</html>
