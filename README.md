@@ -14,6 +14,8 @@ The project demonstrates how different Java concepts can be combined to build a 
 
 This project was developed as my Java Final Exam Project.
 
+<img width="1293" height="836" alt="image" src="https://github.com/user-attachments/assets/7509a153-5296-422e-b7d9-f1d3710dc921" />
+
 ## Features
 
 ### Customer Management
