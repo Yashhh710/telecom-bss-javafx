@@ -6,6 +6,10 @@ The application provides a complete desktop-based solution for managing telecom 
 
 [Click for live Web demo](https://yashhh710.github.io/telecom-bss-javafx/WEB-DEMO.html)
 
+<a href="https://github.com/Yashhh710/telecom-bss-javafx/raw/refs/heads/main/JAVA_Case_Study_Report.pdf" target="_blank" rel="noopener noreferrer">
+    Report
+</a>
+
 ## Project Overview
 
 Telecom operators need to manage large amounts of customer and billing information, including SIM activation, subscription plans, call/SMS/data usage, monthly bills, and payments.
