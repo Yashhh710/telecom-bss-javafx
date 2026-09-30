@@ -6,7 +6,7 @@ The application provides a complete desktop-based solution for managing telecom 
 
 [Click for live Web demo](https://yashhh710.github.io/telecom-bss-javafx/WEB-DEMO.html)
 
-Click for Report
+[Click for Report](https://github.com/Yashhh710/telecom-bss-javafx/blob/main/JAVA_Case_Study_Report.pdf)
 
 ## Project Overview
 
